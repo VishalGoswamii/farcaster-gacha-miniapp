@@ -1,0 +1,14 @@
+    {
+      "build": {
+        "env": {
+          "DISABLE_REACT_FAST_REFRESH": "true"
+        }
+      },
+      "builds": [
+        {
+          "src": "index.jsx",
+          "use": "@vercel/static-build"
+        }
+      ]
+    }
+    
