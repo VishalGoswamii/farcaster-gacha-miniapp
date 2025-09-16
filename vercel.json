@@ -1,14 +1,20 @@
+{
+  "rewrites": [
     {
-      "build": {
-        "env": {
-          "DISABLE_REACT_FAST_REFRESH": "true"
-        }
-      },
-      "builds": [
+      "source": "/(.*)",
+      "destination": "/index.js"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-          "src": "index.jsx",
-          "use": "@vercel/static-build"
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
         }
       ]
     }
-    
+  ],
+  "outputDirectory": "dist"
+}

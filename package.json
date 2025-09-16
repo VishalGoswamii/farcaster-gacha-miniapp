@@ -1,0 +1,21 @@
+{
+  "name": "farcaster-gacha-miniapp",
+  "version": "1.0.0",
+  "description": "A Farcaster miniapp for a gacha vending machine.",
+  "main": "index.jsx",
+  "scripts": {
+    "build": "mkdir -p dist && npx @babel/cli index.jsx --presets @babel/preset-react --out-file dist/index.js",
+    "start": "npx serve dist -s"
+  },
+  "dependencies": {
+    "firebase": "^10.12.2",
+    "ethers": "^6.13.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-icons": "^5.2.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.24.7",
+    "@babel/preset-react": "^7.24.7"
+  }
+}
