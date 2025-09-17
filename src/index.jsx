@@ -1,14 +1,14 @@
 // index.jsx
-import React, { useState, useEffect } from 'react';
-import { createRoot } from 'react-dom/client'; // ✅ correct import for React 18
+import React, { useState, useEffect, useCallback } from 'react';
+import { createRoot } from 'react-dom/client';
 import { ethers } from 'ethers';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-
-// Farcaster Mini App SDK
 import { sdk } from '@farcaster/miniapp-sdk';
 
-// --- Firebase config (replace with real values) ---
+// ───────────────────────────────────────────────────────────────────────────────
+// Firebase config (replace with real values)
+// ───────────────────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -21,7 +21,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// --- Contract ---
+// ───────────────────────────────────────────────────────────────────────────────
+// Contract
+// ───────────────────────────────────────────────────────────────────────────────
 const CONTRACT_ADDRESS = "0x4625289Eaa6c73151106c69Ee65EF7146b95C8f7";
 const CONTRACT_ABI = [
   "event GachaPulled(address indexed user, uint256 indexed tokenId, uint256 rarity)",
@@ -36,6 +38,9 @@ const rarityMap = [
   'Platinum', 'Rare', 'Epic', 'Legendary', 'Mythic'
 ];
 
+// ───────────────────────────────────────────────────────────────────────────────
+// App Component
+// ───────────────────────────────────────────────────────────────────────────────
 function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [currentTab, setCurrentTab] = useState('gacha');
@@ -43,26 +48,39 @@ function App() {
   const [isPulling, setIsPulling] = useState(false);
   const [pullResult, setPullResult] = useState(null);
 
-  // --- Farcaster provider helpers ---
-  const getFarcasterWallet = async () => {
+  // Connect (request) accounts on button click
+  const connectWallet = useCallback(async () => {
+    const provider = sdk.getEthereumProvider();
+    if (!provider) return alert("No Farcaster wallet found. Please open in a Farcaster Mini App host.");
     try {
-      const provider = sdk.getEthereumProvider();
-      if (!provider) {
-        console.log("No Farcaster provider found.");
-        return;
-      }
-      // If you want to actively request accounts on button click, use 'eth_requestAccounts'
-      const accounts = await provider.request({ method: 'eth_accounts' });
-      if (accounts.length) {
-        setCurrentAccount(accounts[0]);
-        console.log("Farcaster wallet connected:", accounts[0]);
-      }
-    } catch (error) {
-      console.log("Error getting Farcaster wallet:", error);
+      const accounts = await provider.request({ method: 'eth_requestAccounts' });
+      if (accounts.length) setCurrentAccount(accounts[0]);
+    } catch (e) {
+      console.warn('User rejected or error requesting accounts', e);
     }
-  };
+  }, []);
 
-  const setupEventListener = React.useCallback(() => {
+  // On load, check existing accounts (silent)
+  useEffect(() => {
+    (async () => {
+      try {
+        const provider = sdk.getEthereumProvider();
+        if (!provider) return;
+        const accounts = await provider.request({ method: 'eth_accounts' });
+        if (accounts?.length) setCurrentAccount(accounts[0]);
+
+        // listen for account changes
+        provider?.on?.('accountsChanged', (accs) => {
+          setCurrentAccount(accs?.[0] || null);
+        });
+      } catch (e) {
+        console.warn('Error fetching accounts', e);
+      }
+    })();
+  }, []);
+
+  // Event listener (subscribe/unsubscribe)
+  const setupEventListener = useCallback(() => {
     const provider = sdk.getEthereumProvider();
     if (!provider) return;
 
@@ -97,7 +115,13 @@ function App() {
     };
   }, [currentAccount]);
 
-  const fetchMyCards = React.useCallback(async () => {
+  useEffect(() => {
+    const cleanup = setupEventListener();
+    return cleanup;
+  }, [setupEventListener]);
+
+  // Fetch my cards when account/tab changes
+  const fetchMyCards = useCallback(async () => {
     if (!currentAccount) return;
     const q = query(collection(db, "cards"), where("user", "==", currentAccount));
     const querySnapshot = await getDocs(q);
@@ -107,17 +131,12 @@ function App() {
   }, [currentAccount]);
 
   useEffect(() => {
-    // listen for events while user is connected
-    const cleanup = setupEventListener();
-    return cleanup;
-  }, [setupEventListener]);
-
-  useEffect(() => {
     if (currentAccount) fetchMyCards();
     else setMyCards([]);
   }, [currentAccount, currentTab, fetchMyCards]);
 
-  const pullGacha = async () => {
+  // Pull gacha
+  const pullGacha = useCallback(async () => {
     try {
       const provider = sdk.getEthereumProvider();
       if (!provider) {
@@ -129,8 +148,8 @@ function App() {
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
       const network = await web3Provider.getNetwork();
-      if (network.chainId !== 84532) {
-        alert("Please switch your Farcaster wallet to the Base Sepolia Testnet!");
+      if (Number(network.chainId) !== 84532) {
+        alert("Please switch your Farcaster wallet to the Base Sepolia Testnet (chainId 84532).");
         return;
       }
 
@@ -144,8 +163,9 @@ function App() {
       console.error("Error during Gacha pull:", error);
       setIsPulling(false);
     }
-  };
+  }, []);
 
+  // UI
   const renderGachaTab = () => (
     <div className="tab-content gacha-tab">
       <div className="gacha-machine">
@@ -189,24 +209,11 @@ function App() {
         <h1>Mystery Gacha NFT Machine</h1>
         <div className="wallet-info">
           {currentAccount ? (
-            <span className="wallet-address">Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}</span>
+            <span className="wallet-address">
+              Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}
+            </span>
           ) : (
-            <button
-              onClick={async () => {
-                // actively request accounts on click
-                const provider = sdk.getEthereumProvider();
-                if (!provider) return alert("No Farcaster wallet found.");
-                try {
-                  const accounts = await provider.request({ method: 'eth_requestAccounts' });
-                  if (accounts.length) setCurrentAccount(accounts[0]);
-                } catch (e) {
-                  console.warn('User rejected or error requesting accounts', e);
-                }
-              }}
-              className="connect-button"
-            >
-              Connect Farcaster Wallet
-            </button>
+            <button onClick={connectWallet} className="connect-button">Connect Farcaster Wallet</button>
           )}
         </div>
       </header>
@@ -231,34 +238,49 @@ function App() {
   );
 }
 
-// ---------- Boot & call sdk.actions.ready() exactly once ----------
-const ensureDomReady = () =>
-  new Promise((resolve) => {
-    if (document.readyState === 'loading') {
-      window.addEventListener('DOMContentLoaded', resolve, { once: true });
-    } else {
-      resolve();
-    }
-  });
+// ───────────────────────────────────────────────────────────────────────────────
+// Boot + hardened ready()
+// ───────────────────────────────────────────────────────────────────────────────
 
-// Guard against double-invocation in dev/StrictMode/HMR
+// wait for two RAFs to ensure the first frame actually committed
+function afterFirstPaint() {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+async function callReadyOnce(opts) {
+  if (window.__miniappReadyCalled) return;
+  try {
+    await sdk.actions.ready(opts);
+    window.__miniappReadyCalled = true;
+    console.log('[miniapp] sdk.actions.ready() → OK');
+  } catch (e) {
+    console.warn('[miniapp] ready() threw (host missing or other issue):', e);
+  }
+}
+
+// Guard against duplicates in Strict Mode / HMR
 window.__miniappReadyCalled = window.__miniappReadyCalled || false;
 
 (async function boot() {
-  await ensureDomReady();
-
+  // Ensure #root exists
   const container = document.getElementById('root');
-  const root = createRoot(container);
-  root.render(<App />); // render first so UI exists
-
-  if (!window.__miniappReadyCalled) {
-    try {
-      await sdk.actions.ready(); // { disableNativeGestures: true } if needed
-      window.__miniappReadyCalled = true;
-      console.log('[miniapp] sdk.actions.ready() called');
-    } catch (e) {
-      // If not inside Farcaster host, this is expected.
-      console.warn('[miniapp] ready() failed or host not detected:', e);
-    }
+  if (!container) {
+    console.error('[miniapp] #root not found in DOM');
+    return;
   }
+
+  // Render first so the host can safely dismiss the splash
+  const root = createRoot(container);
+  root.render(<App />);
+
+  // Call ready() after first paint
+  try {
+    await afterFirstPaint();
+    await callReadyOnce(); // pass { disableNativeGestures: true } if needed
+  } catch (e) {
+    console.warn('[miniapp] post-paint ready() failed:', e);
+  }
+
+  // Safety net in case the first call was skipped/blocked
+  setTimeout(() => callReadyOnce(), 1200);
 })();
