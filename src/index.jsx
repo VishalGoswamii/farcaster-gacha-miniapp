@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { ethers } from 'ethers';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore';
@@ -172,27 +172,35 @@ const App = () => {
   const renderGachaTab = () => (
     <div className="tab-content gacha-tab">
       <div className="gacha-machine">
-        <div className="display-screen">
+        <div className="gacha-screen">
           {pullResult ? (
-            <div className={`card ${pullResult.rarity.toLowerCase()}`}>
-              <h3>{pullResult.rarity} Card</h3>
-              <p>Token ID: {pullResult.tokenId}</p>
+            <div className={`gacha-result-card ${pullResult.rarity.toLowerCase()}`}>
+              <div className="card-top-border"></div>
+              <div className="card-content">
+                <div className="card-rarity-bg"></div>
+                <div className="card-rarity-text">{pullResult.rarity}</div>
+                <p className="card-tokenId">Token ID: {pullResult.tokenId}</p>
+              </div>
+              <div className="card-bottom-border"></div>
             </div>
           ) : (
-            <p className="placeholder-text">Press the button to pull your free NFT!</p>
+            <div className="gacha-prompt">
+              <p>Ready to get your next digital treasure?</p>
+              <p>Click the button below to find out!</p>
+            </div>
           )}
         </div>
-        <button onClick={pullGacha} disabled={!currentAccount || isPulling} className="pull-button">
+        <button onClick={pullGacha} disabled={!currentAccount || isPulling} className="gacha-pull-button">
           {isPulling ? "Pulling..." : "Pull Gacha (Free)"}
         </button>
       </div>
       {showPreview && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h2 className="modal-title">Confirm Gacha Pull</h2>
-            <p className="modal-text">Are you sure you want to pull a free NFT from the vending machine?</p>
+            <h2 className="modal-title">Confirm Pull</h2>
+            <p className="modal-text">A free NFT is waiting for you! Are you ready to pull?</p>
             <div className="modal-buttons">
-              <button onClick={confirmPull} className="confirm-button">Confirm Pull</button>
+              <button onClick={confirmPull} className="confirm-button">Pull Now</button>
               <button onClick={() => setShowPreview(false)} className="cancel-button">Cancel</button>
             </div>
           </div>
@@ -202,46 +210,56 @@ const App = () => {
   );
 
   const renderMyCardsTab = () => (
-    <div className="tab-content cards-tab">
-      {myCards.length > 0 ? (
-        <div className="card-grid">
-          {myCards.map((card, index) => (
-            <div key={index} className={`card ${card.rarity.toLowerCase()}`}>
-              <h3>{card.rarity} Card</h3>
-              <p>Token ID: {card.tokenId}</p>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="placeholder-text">You haven't pulled any cards yet.</p>
-      )}
+    <div className="tab-content my-cards-tab">
+      <div className="card-display-area">
+        {myCards.length > 0 ? (
+          <div className="card-grid">
+            {myCards.map((card, index) => (
+              <div key={index} className={`gacha-result-card ${card.rarity.toLowerCase()}`}>
+                <div className="card-top-border"></div>
+                <div className="card-content">
+                  <div className="card-rarity-bg"></div>
+                  <div className="card-rarity-text">{card.rarity}</div>
+                  <p className="card-tokenId">Token ID: {card.tokenId}</p>
+                </div>
+                <div className="card-bottom-border"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="no-cards-prompt">
+            <p>You haven't pulled any cards yet!</p>
+            <p>Go to the "Gacha Machine" tab to get started.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 
   return (
     <div className="app-container">
-      <header className="header">
-        <h1>Mystery Gacha NFT Machine</h1>
-        <div className="wallet-info">
+      <header className="app-header">
+        <h1 className="app-title">Mystery Gacha NFT</h1>
+        <div className="wallet-section">
           {currentAccount ? (
             <span className="wallet-address">Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}</span>
           ) : (
-            <button onClick={getFarcasterWallet} className="connect-button">Connect Farcaster Wallet</button>
+            <button onClick={getFarcasterWallet} className="connect-wallet-button">Connect Wallet</button>
           )}
         </div>
       </header>
-      <div className="tab-selector">
+      <div className="tab-container">
         <button
-          className={currentTab === 'gacha' ? 'active' : ''}
+          className={`tab-button ${currentTab === 'gacha' ? 'active' : ''}`}
           onClick={() => setCurrentTab('gacha')}
         >
-          Gacha Vending Machine
+          Gacha Machine
         </button>
         <button
-          className={currentTab === 'cards' ? 'active' : ''}
+          className={`tab-button ${currentTab === 'cards' ? 'active' : ''}`}
           onClick={() => setCurrentTab('cards')}
         >
-          My Cards
+          My Collection
         </button>
       </div>
       {currentTab === 'gacha' ? renderGachaTab() : renderMyCardsTab()}
