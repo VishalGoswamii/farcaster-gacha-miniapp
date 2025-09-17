@@ -44,7 +44,8 @@ const App = () => {
   const [isFarcasterReady, setIsFarcasterReady] = useState(false);
 
   useEffect(() => {
-    // Call sdk.actions.ready() to signal the app is ready to the Farcaster client.
+    // This hook runs once when the component mounts.
+    // It's the best place to handle app-ready logic in a React environment.
     const initFarcaster = async () => {
       try {
         await sdk.actions.ready();
@@ -112,7 +113,7 @@ const App = () => {
       setIsPulling(true);
       setPullResult(null);
 
-      console.log("Pulling Gacha on Base Sepolia...");
+      console.log("Pulling Gacha...");
       const transaction = await contract.pullGacha();
       await transaction.wait();
       
