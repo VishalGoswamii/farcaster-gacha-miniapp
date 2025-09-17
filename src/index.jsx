@@ -44,10 +44,10 @@ const App = () => {
   const [isFarcasterReady, setIsFarcasterReady] = useState(false);
 
   useEffect(() => {
-    // Signal to the Farcaster client that the app is ready to be displayed
+    // Call sdk.actions.ready() to signal the app is ready to the Farcaster client.
     const initFarcaster = async () => {
       try {
-        await miniapp.actions.ready();
+        await sdk.actions.ready();
         setIsFarcasterReady(true);
         console.log("Farcaster Mini App is ready.");
       } catch (e) {
@@ -56,7 +56,9 @@ const App = () => {
       }
     };
     initFarcaster();
+  }, []);
 
+  useEffect(() => {
     if (isFarcasterReady) {
       getFarcasterWallet();
       setupEventListener();
@@ -73,7 +75,7 @@ const App = () => {
 
   const getFarcasterWallet = async () => {
     try {
-      const provider = miniapp.getEthereumProvider();
+      const provider = sdk.getEthereumProvider();
       if (!provider) {
         console.log("No Farcaster provider found.");
         return;
@@ -91,7 +93,7 @@ const App = () => {
 
   const pullGacha = async () => {
     try {
-      const provider = miniapp.getEthereumProvider();
+      const provider = sdk.getEthereumProvider();
       if (!provider) {
         alert("Please connect your Farcaster wallet!");
         return;
@@ -124,7 +126,7 @@ const App = () => {
   
   const setupEventListener = () => {
     try {
-      const provider = miniapp.getEthereumProvider();
+      const provider = sdk.getEthereumProvider();
       if (!provider) {
         return;
       }
