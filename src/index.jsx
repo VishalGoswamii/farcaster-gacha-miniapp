@@ -1,13 +1,14 @@
+// index.jsx
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client'; // ✅ correct import for React 18
 import { ethers } from 'ethers';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 
-// Import Farcaster Mini App SDK
+// Farcaster Mini App SDK
 import { sdk } from '@farcaster/miniapp-sdk';
 
-// Firebase configuration - replace with your actual config
+// --- Firebase config (replace with real values) ---
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -20,7 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Smart contract details
+// --- Contract ---
 const CONTRACT_ADDRESS = "0x4625289Eaa6c73151106c69Ee65EF7146b95C8f7";
 const CONTRACT_ABI = [
   "event GachaPulled(address indexed user, uint256 indexed tokenId, uint256 rarity)",
@@ -35,44 +36,14 @@ const rarityMap = [
   'Platinum', 'Rare', 'Epic', 'Legendary', 'Mythic'
 ];
 
-const App = () => {
+function App() {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [currentTab, setCurrentTab] = useState('gacha');
   const [myCards, setMyCards] = useState([]);
   const [isPulling, setIsPulling] = useState(false);
   const [pullResult, setPullResult] = useState(null);
-  const [isFarcasterReady, setIsFarcasterReady] = useState(false);
 
-  useEffect(() => {
-    // Call sdk.actions.ready() to signal the app is ready to the Farcaster client.
-    const initFarcaster = async () => {
-      try {
-        await sdk.actions.ready();
-        setIsFarcasterReady(true);
-        console.log("Farcaster Mini App is ready.");
-      } catch (e) {
-        console.error("Farcaster SDK not found. Running in regular browser mode.", e);
-        setIsFarcasterReady(false);
-      }
-    };
-    initFarcaster();
-  }, []);
-
-  useEffect(() => {
-    if (isFarcasterReady) {
-      getFarcasterWallet();
-      setupEventListener();
-    }
-  }, [isFarcasterReady]);
-
-  useEffect(() => {
-    if (currentAccount) {
-      fetchMyCards();
-    } else {
-      setMyCards([]);
-    }
-  }, [currentAccount, currentTab]);
-
+  // --- Farcaster provider helpers ---
   const getFarcasterWallet = async () => {
     try {
       const provider = sdk.getEthereumProvider();
@@ -80,16 +51,71 @@ const App = () => {
         console.log("No Farcaster provider found.");
         return;
       }
+      // If you want to actively request accounts on button click, use 'eth_requestAccounts'
       const accounts = await provider.request({ method: 'eth_accounts' });
-      if (accounts.length !== 0) {
-        const account = accounts[0];
-        setCurrentAccount(account);
-        console.log("Farcaster wallet connected:", account);
+      if (accounts.length) {
+        setCurrentAccount(accounts[0]);
+        console.log("Farcaster wallet connected:", accounts[0]);
       }
     } catch (error) {
       console.log("Error getting Farcaster wallet:", error);
     }
   };
+
+  const setupEventListener = React.useCallback(() => {
+    const provider = sdk.getEthereumProvider();
+    if (!provider) return;
+
+    const web3Provider = new ethers.providers.Web3Provider(provider);
+    const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, web3Provider);
+
+    const handler = async (user, tokenId, rarity) => {
+      if (!currentAccount) return;
+      if (user.toLowerCase() !== currentAccount.toLowerCase()) return;
+
+      const cardData = {
+        user,
+        tokenId: tokenId.toString(),
+        rarity: rarityMap[Number(rarity)] ?? String(rarity),
+        pulledAt: new Date()
+      };
+
+      console.log(`GachaPulled: tokenId=${cardData.tokenId}, rarity=${cardData.rarity}`);
+      setPullResult(cardData);
+      setIsPulling(false);
+
+      try {
+        await addDoc(collection(db, "cards"), cardData);
+      } catch (e) {
+        console.error("Error adding document: ", e);
+      }
+    };
+
+    contract.on("GachaPulled", handler);
+    return () => {
+      try { contract.off("GachaPulled", handler); } catch {}
+    };
+  }, [currentAccount]);
+
+  const fetchMyCards = React.useCallback(async () => {
+    if (!currentAccount) return;
+    const q = query(collection(db, "cards"), where("user", "==", currentAccount));
+    const querySnapshot = await getDocs(q);
+    const cards = [];
+    querySnapshot.forEach((doc) => cards.push(doc.data()));
+    setMyCards(cards);
+  }, [currentAccount]);
+
+  useEffect(() => {
+    // listen for events while user is connected
+    const cleanup = setupEventListener();
+    return cleanup;
+  }, [setupEventListener]);
+
+  useEffect(() => {
+    if (currentAccount) fetchMyCards();
+    else setMyCards([]);
+  }, [currentAccount, currentTab, fetchMyCards]);
 
   const pullGacha = async () => {
     try {
@@ -98,7 +124,6 @@ const App = () => {
         alert("Please connect your Farcaster wallet!");
         return;
       }
-
       const web3Provider = new ethers.providers.Web3Provider(provider);
       const signer = web3Provider.getSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
@@ -108,67 +133,19 @@ const App = () => {
         alert("Please switch your Farcaster wallet to the Base Sepolia Testnet!");
         return;
       }
-      
+
       setIsPulling(true);
       setPullResult(null);
-
       console.log("Pulling Gacha...");
-      const transaction = await contract.pullGacha();
-      await transaction.wait();
-      
+      const tx = await contract.pullGacha();
+      await tx.wait();
       console.log("Gacha pull successful!");
-      
     } catch (error) {
       console.error("Error during Gacha pull:", error);
       setIsPulling(false);
     }
   };
-  
-  const setupEventListener = () => {
-    try {
-      const provider = sdk.getEthereumProvider();
-      if (!provider) {
-        return;
-      }
-      const web3Provider = new ethers.providers.Web3Provider(provider);
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, web3Provider);
 
-      contract.on("GachaPulled", async (user, tokenId, rarity) => {
-        if (user.toLowerCase() === currentAccount.toLowerCase()) {
-          console.log(`GachaPulled event received: tokenId=${tokenId}, rarity=${rarityMap[rarity]}`);
-          const cardData = {
-            user: user,
-            tokenId: tokenId.toString(),
-            rarity: rarityMap[rarity],
-            pulledAt: new Date()
-          };
-
-          setPullResult(cardData);
-          setIsPulling(false);
-
-          // Add card to Firestore
-          try {
-            await addDoc(collection(db, "cards"), cardData);
-          } catch (e) {
-            console.error("Error adding document: ", e);
-          }
-        }
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const fetchMyCards = async () => {
-    const q = query(collection(db, "cards"), where("user", "==", currentAccount));
-    const querySnapshot = await getDocs(q);
-    const cards = [];
-    querySnapshot.forEach((doc) => {
-      cards.push(doc.data());
-    });
-    setMyCards(cards);
-  };
-  
   const renderGachaTab = () => (
     <div className="tab-content gacha-tab">
       <div className="gacha-machine">
@@ -214,10 +191,26 @@ const App = () => {
           {currentAccount ? (
             <span className="wallet-address">Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}</span>
           ) : (
-            <button onClick={getFarcasterWallet} className="connect-button">Connect Farcaster Wallet</button>
+            <button
+              onClick={async () => {
+                // actively request accounts on click
+                const provider = sdk.getEthereumProvider();
+                if (!provider) return alert("No Farcaster wallet found.");
+                try {
+                  const accounts = await provider.request({ method: 'eth_requestAccounts' });
+                  if (accounts.length) setCurrentAccount(accounts[0]);
+                } catch (e) {
+                  console.warn('User rejected or error requesting accounts', e);
+                }
+              }}
+              className="connect-button"
+            >
+              Connect Farcaster Wallet
+            </button>
           )}
         </div>
       </header>
+
       <div className="tab-selector">
         <button
           className={currentTab === 'gacha' ? 'active' : ''}
@@ -232,10 +225,40 @@ const App = () => {
           My Cards
         </button>
       </div>
+
       {currentTab === 'gacha' ? renderGachaTab() : renderMyCardsTab()}
     </div>
   );
-};
+}
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+// ---------- Boot & call sdk.actions.ready() exactly once ----------
+const ensureDomReady = () =>
+  new Promise((resolve) => {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', resolve, { once: true });
+    } else {
+      resolve();
+    }
+  });
+
+// Guard against double-invocation in dev/StrictMode/HMR
+window.__miniappReadyCalled = window.__miniappReadyCalled || false;
+
+(async function boot() {
+  await ensureDomReady();
+
+  const container = document.getElementById('root');
+  const root = createRoot(container);
+  root.render(<App />); // render first so UI exists
+
+  if (!window.__miniappReadyCalled) {
+    try {
+      await sdk.actions.ready(); // { disableNativeGestures: true } if needed
+      window.__miniappReadyCalled = true;
+      console.log('[miniapp] sdk.actions.ready() called');
+    } catch (e) {
+      // If not inside Farcaster host, this is expected.
+      console.warn('[miniapp] ready() failed or host not detected:', e);
+    }
+  }
+})();
