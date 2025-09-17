@@ -45,19 +45,21 @@ const App = () => {
 
   useEffect(() => {
     // This hook runs once when the component mounts.
-    // It's the best place to handle app-ready logic in a React environment.
     const initFarcaster = async () => {
       try {
         await sdk.actions.ready();
-        setIsFarcasterReady(true);
         console.log("Farcaster Mini App is ready.");
+        
+        // After the SDK is ready, get the wallet and set up the listener
+        getFarcasterWallet();
+        setupEventListener();
+
       } catch (e) {
         console.error("Farcaster SDK not found. Running in regular browser mode.", e);
-        setIsFarcasterReady(false);
       }
     };
     initFarcaster();
-  }, []);
+  }, []); // The empty dependency array ensures this runs only once.
 
   useEffect(() => {
     if (isFarcasterReady) {
