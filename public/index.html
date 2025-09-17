@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystery Gacha NFT</title>
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/miniapp-sdk/dist/index.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Press+Start+2P&display=swap');
+        
+        :root {
+            --background-color: #f0f2f5;
+            --container-bg-color: #ffffff;
+            --header-bg-color: #3f51b5;
+            --header-text-color: #ffffff;
+            --button-bg-color: #ff4081;
+            --button-text-color: #ffffff;
+            --tab-active-bg: #e0e0e0;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        #root {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            background-color: var(--container-bg-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .header {
+            width: 100%;
+            background-color: var(--header-bg-color);
+            color: var(--header-text-color);
+            padding: 20px;
+            border-top-left-radius: var(--border-radius);
+            border-top-right-radius: var(--border-radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            margin: 0;
+        }
+
+        .wallet-info {
+            font-size: 0.8rem;
+        }
+        
+        .connect-button {
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tab-selector {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .tab-selector button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #555;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-selector button.active {
+            color: var(--header-bg-color);
+            border-bottom: 2px solid var(--header-bg-color);
+        }
+
+        .tab-content {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gacha-machine {
+            background-color: #d3d3d3;
+            border: 5px solid #a9a9a9;
+            padding: 15px;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .display-screen {
+            background-color: #222;
+            color: #00ff00;
+            border: 3px solid #000;
+            border-radius: 5px;
+            padding: 15px;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            font-family: 'Press Start 2P', cursive;
+        }
+        
+        .pull-button {
+            background-color: #ff0000;
+            color: white;
+            border: 3px solid #8b0000;
+            border-radius: 10px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-family: 'Press Start 2P', cursive;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        
+        .pull-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .pull-button:disabled {
+            background-color: #ccc;
+            border-color: #999;
+            cursor: not-allowed;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .card {
+            border: 3px solid;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-family: 'Press Start 2P', cursive;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card.common { border-color: #a9a9a9; background-color: #f5f5f5; }
+        .card.uncommon { border-color: #4CAF50; background-color: #E8F5E9; }
+        .card.bronze { border-color: #CD7F32; background-color: #F8E7C0; }
+        .card.silver { border-color: #C0C0C0; background-color: #EAEAEA; }
+        .card.gold { border-color: #FFD700; background-color: #FFF8E1; }
+        .card.platinum { border-color: #E5E4E2; background-color: #F5F5F5; }
+        .card.rare { border-color: #2196F3; background-color: #E3F2FD; }
+        .card.epic { border-color: #9C27B0; background-color: #F3E5F5; }
+        .card.legendary { border-color: #FF9800; background-color: #FFF3E0; }
+        .card.mythic { border-color: #E91E63; background-color: #FCE4EC; }
+
+        .card h3 {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .card p {
+            margin: 5px 0 0;
+            font-size: 0.7rem;
+        }
+        
+        .placeholder-text {
+            font-size: 1rem;
+            color: #888;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .app-container {
+                width: 100%;
+                padding: 10px;
+            }
+            
+            .header {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1rem;
+                margin-bottom: 5px;
+            }
+            
+            .wallet-info {
+                font-size: 0.7rem;
+            }
+            
+            .gacha-machine {
+                padding: 10px;
+            }
+            
+            .display-screen {
+                height: 150px;
+            }
+            
+            .pull-button {
+                font-size: 1rem;
+                padding: 10px 20px;
+            }
+            
+            .card {
+                padding: 8px;
+            }
+            
+            .card h3 {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/index.jsx"></script>
+</body>
+</html>

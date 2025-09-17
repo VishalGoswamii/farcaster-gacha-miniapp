@@ -1,0 +1,24 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "Mystery Gacha NFT",
+    "iconUrl": "https://your-app-url.vercel.app/images/icon.png",
+    "homeUrl": "https://your-app-url.vercel.app/",
+    "imageUrl": "https://your-app-url.vercel.app/images/feed.png",
+    "screenshotUrls": [],
+    "tags": ["base", "farcaster", "miniapp", "game", "gacha", "nft"],
+    "primaryCategory": "game",
+    "buttonTitle": "Play now!",
+    "splashImageUrl": "https://your-app-url.vercel.app/images/splash.png",
+    "splashBackgroundColor": "#14051a",
+    "subtitle": "Pull a free onchain NFT!",
+    "description": "The Mystery Gacha is a free-to-play NFT vending machine where you can pull unique trading cards on the Base Sepolia testnet.",
+    "webhookUrl": "https://your-app-url.vercel.app/api/webhook",
+    "tagline": "A free NFT vending machine on Base."
+  }
+}

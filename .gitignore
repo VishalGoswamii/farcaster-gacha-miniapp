@@ -1,1 +1,9 @@
-node_modules
+@"
+# dependencies
+/node_modules
+
+# build outputs
+/build
+/dist
+.env
+"@ | Set-Content -Path ".gitignore" -Force
