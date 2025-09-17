@@ -3,11 +3,8 @@ import ReactDOM from 'react-dom';
 import { ethers } from 'ethers';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore';
-
-// Import Farcaster Mini App SDK
 import { sdk } from '@farcaster/miniapp-sdk';
 
-// Firebase configuration - replace with your actual config
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -20,7 +17,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Smart contract details
 const CONTRACT_ADDRESS = "0x4625289Eaa6c73151106c69Ee65EF7146b95C8f7";
 const CONTRACT_ABI = [
   "event GachaPulled(address indexed user, uint256 indexed tokenId, uint256 rarity)",
@@ -42,9 +38,9 @@ const App = () => {
   const [isPulling, setIsPulling] = useState(false);
   const [pullResult, setPullResult] = useState(null);
   const [isFarcasterReady, setIsFarcasterReady] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    // Call sdk.actions.ready() to signal the app is ready to the Farcaster client.
     const initFarcaster = async () => {
       try {
         await sdk.actions.ready();
@@ -92,6 +88,11 @@ const App = () => {
   };
 
   const pullGacha = async () => {
+    setShowPreview(true);
+  };
+  
+  const confirmPull = async () => {
+    setShowPreview(false);
     try {
       const provider = sdk.getEthereumProvider();
       if (!provider) {
@@ -112,7 +113,7 @@ const App = () => {
       setIsPulling(true);
       setPullResult(null);
 
-      console.log("Pulling Gacha on Base Sepolia...");
+      console.log("Pulling Gacha...");
       const transaction = await contract.pullGacha();
       await transaction.wait();
       
@@ -123,7 +124,7 @@ const App = () => {
       setIsPulling(false);
     }
   };
-  
+
   const setupEventListener = () => {
     try {
       const provider = sdk.getEthereumProvider();
@@ -146,7 +147,6 @@ const App = () => {
           setPullResult(cardData);
           setIsPulling(false);
 
-          // Add card to Firestore
           try {
             await addDoc(collection(db, "cards"), cardData);
           } catch (e) {
@@ -186,6 +186,18 @@ const App = () => {
           {isPulling ? "Pulling..." : "Pull Gacha (Free)"}
         </button>
       </div>
+      {showPreview && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2 className="modal-title">Confirm Gacha Pull</h2>
+            <p className="modal-text">Are you sure you want to pull a free NFT from the vending machine?</p>
+            <div className="modal-buttons">
+              <button onClick={confirmPull} className="confirm-button">Confirm Pull</button>
+              <button onClick={() => setShowPreview(false)} className="cancel-button">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
