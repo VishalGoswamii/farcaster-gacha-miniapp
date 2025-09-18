@@ -6,7 +6,7 @@
     <title>Mystery Gacha NFT</title>
 
     <meta property="fc:frame" content="vNext" />
-    <meta property="fc:frame:image" content="https://your-app-url.vercel.app/images/gacha-preview.png" />
+    <meta property="fc:frame:image" content="https://farcaster-gacha-miniapp.vercel.app/images/gacha-preview.png" />
     <meta property="fc:frame:post_url" content="https://farcaster-gacha-miniapp.vercel.app/api/redirect-pull" />
     <meta property="fc:frame:button:1" content="Pull a Card" />
     
@@ -14,114 +14,114 @@
     <meta property="og:description" content="Pull a free onchain NFT from the Mystery Gacha on the Base Sepolia Testnet!" />
     <meta property="og:image" content="https://farcaster-gacha-miniapp.vercel.app/images/gacha-preview.png" />
     <meta property="og:url" content="https://farcaster-gacha-miniapp.vercel.app/" />
-
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    
     
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Shrikhand&family=Bangers&display=swap');
-        
         :root {
-            --primary-color: #6a1b9a; /* Deep Purple */
-            --secondary-color: #ff9800; /* Vibrant Orange */
-            --accent-color: #e91e63; /* Pink */
-            --light-text: #f0f0f0;
-            --dark-text: #2c003e;
-            --gacha-bg: #4a148c; /* Darker Purple */
-            --card-border-common: #888;
-            --card-border-uncommon: #4CAF50;
-            --card-border-bronze: #CD7F32;
-            --card-border-silver: #C0C0C0;
-            --card-border-gold: #FFD700;
-            --card-border-platinum: #E5E4E2;
-            --card-border-rare: #2196F3;
-            --card-border-epic: #9C27B0;
-            --card-border-legendary: #FF9800;
-            --card-border-mythic: #E91E63;
+            --bg-color: #3f2f45;
+            --primary-color: #f7a944;
+            --secondary-color: #58b68a;
+            --accent-color: #eb5454;
+            --pixel-border-color: #000000;
         }
 
         body {
-            font-family: 'Shrikhand', cursive;
-            background: linear-gradient(135deg, var(--primary-color), var(--gacha-bg));
+            font-family: 'Press Start 2P', cursive;
+            background-color: var(--bg-color);
+            background-image:
+                linear-gradient(45deg, rgba(0,0,0,.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.2) 75%),
+                linear-gradient(45deg, rgba(0,0,0,.2) 25%, transparent 25%, transparent 75%, rgba(0,0,0,.2) 75%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
             margin: 0;
             padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: var(--light-text);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            color: #ffffff;
+            text-shadow: 2px 2px var(--pixel-border-color);
         }
         
         #root {
             width: 100%;
-            max-width: 600px;
-            padding: 20px;
+            max-width: 640px;
+            padding: 16px;
             box-sizing: border-box;
         }
 
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 14px;
+        }
+
+        .pixel-border {
+            border: 4px solid var(--pixel-border-color);
+            border-style: solid;
+            box-shadow: 4px 4px 0 var(--pixel-border-color);
+            transform: translate(-4px, -4px);
+            transition: transform 0.1s ease;
+        }
+        
+        .pixel-border:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+        
         .app-container {
-            background-color: rgba(0,0,0,0.4);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 3px solid var(--secondary-color);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.2);
+            background-color: #c9c1c8;
+            border-radius: 8px;
+            box-shadow: 8px 8px 0 var(--pixel-border-color);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            position: relative;
+            border: 4px solid var(--pixel-border-color);
         }
 
         .app-header {
             width: 100%;
-            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
-            padding: 15px 25px;
+            background-color: #79717a;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--light-text);
+            border-bottom: 4px solid var(--pixel-border-color);
         }
 
         .app-title {
-            font-family: 'Bangers', cursive;
-            font-size: 2.2rem;
+            font-size: 24px;
             margin: 0;
-            color: var(--light-text);
-            letter-spacing: 2px;
-            text-shadow: 3px 3px 0px var(--dark-text);
+            color: var(--secondary-color);
+            text-shadow: 4px 4px 0 var(--pixel-border-color);
         }
 
         .wallet-section {
-            font-size: 0.9rem;
-            font-family: 'Shrikhand', cursive;
+            font-size: 12px;
+            color: #ffffff;
             white-space: nowrap;
         }
         
         .connect-wallet-button {
             background-color: var(--primary-color);
-            color: var(--light-text);
-            border: 2px solid var(--secondary-color);
-            padding: 8px 15px;
-            border-radius: 25px;
+            color: #000;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
             cursor: pointer;
-            font-family: 'Shrikhand', cursive;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
         
-        .connect-wallet-button:hover {
-            transform: translateY(-2px);
-            background-color: var(--gacha-bg);
-            box-shadow: 0 6px 10px rgba(0,0,0,0.4);
-        }
-
         .tab-container {
             width: 100%;
             display: flex;
             justify-content: center;
-            background-color: rgba(0,0,0,0.2);
-            padding: 5px;
-            border-bottom: 2px solid var(--secondary-color);
+            background-color: #a499a9;
+            padding: 4px;
+            border-bottom: 4px solid var(--pixel-border-color);
         }
         
         .tab-button {
@@ -131,96 +131,88 @@
             padding: 12px 0;
             cursor: pointer;
             font-weight: bold;
-            font-size: 1.1rem;
-            color: #ddd;
-            font-family: 'Shrikhand', cursive;
-            transition: all 0.2s ease-in-out;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            color: #ffffff;
+            text-shadow: 2px 2px var(--pixel-border-color);
         }
         
         .tab-button.active {
             color: var(--secondary-color);
-            border-bottom: 3px solid var(--secondary-color);
-            background-color: rgba(255,255,255,0.1);
+            text-shadow: 2px 2px var(--pixel-border-color);
+            background-color: #c9c1c8;
         }
 
         .tab-content {
             width: 100%;
-            padding: 25px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .gacha-machine {
-            background: linear-gradient(180deg, #301934, #1f0b24);
-            border: 5px solid var(--primary-color);
-            padding: 20px;
-            border-radius: 15px;
+            background-color: #a499a9;
+            border: 4px solid var(--pixel-border-color);
+            padding: 16px;
+            border-radius: 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
-            max-width: 450px;
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.6);
+            max-width: 400px;
+            box-shadow: inset 4px 4px 0 rgba(0,0,0,0.5);
             position: relative;
         }
 
         .gacha-screen {
-            background: #0d0d0d;
-            border: 5px solid #000;
-            border-radius: 10px;
-            padding: 15px;
+            background: #2b2b2b;
+            border-radius: 4px;
+            padding: 8px;
             width: 90%;
-            height: 250px;
+            height: 200px;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
-            box-shadow: inset 0 0 20px #00ff00;
-            text-shadow: 0 0 5px #00ff00;
+            margin-bottom: 16px;
+            box-shadow: inset 2px 2px 0 rgba(0,0,0,0.5);
+            color: #a4f5aa;
             position: relative;
             overflow: hidden;
         }
 
         .gacha-prompt {
-            color: #a4f5aa;
-            font-family: 'Shrikhand', cursive;
-            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .gacha-prompt p {
+            margin: 4px 0;
+            line-height: 1.2;
         }
         
-        .gacha-prompt p:first-child { margin-bottom: 5px; }
-        .gacha-prompt p:last-child { margin-top: 5px; }
-
         .gacha-pull-button {
-            background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
-            color: var(--light-text);
-            border: 3px solid var(--light-text);
-            border-radius: 30px;
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            font-family: 'Bangers', cursive;
+            background-color: var(--primary-color);
+            color: var(--pixel-border-color);
+            border: none;
+            padding: 12px 24px;
             cursor: pointer;
+            font-size: 18px;
             transition: all 0.2s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-            position: relative;
-            letter-spacing: 1px;
         }
         
         .gacha-pull-button:hover:not(:disabled) {
-            transform: scale(1.05);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            transform: translate(-2px, -2px);
+            box-shadow: 2px 2px 0 var(--pixel-border-color);
         }
         
         .gacha-pull-button:disabled {
-            background: #555;
+            background-color: #6d6d6d;
             border-color: #333;
-            cursor: not-allowed;
             color: #aaa;
+            cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
-
+        
         .card-display-area {
             width: 100%;
             max-width: 500px;
@@ -228,87 +220,63 @@
         
         .card-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 16px;
             width: 100%;
         }
         
-        .gacha-result-card {
-            background: linear-gradient(135deg, #1f0b24, #301934);
-            border: 3px solid;
-            border-radius: 10px;
-            padding: 5px;
+        .gacha-card {
+            background-color: #c9c1c8;
+            border-radius: 4px;
+            padding: 8px;
             text-align: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-            font-family: 'Shrikhand', cursive;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
             transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
             position: relative;
-            overflow: hidden;
         }
 
-        .gacha-result-card:hover {
-            transform: scale(1.05) rotate(2deg);
+        .gacha-card:hover {
+            transform: translate(-4px, -4px) scale(1.05);
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
         }
 
-        .card-top-border, .card-bottom-border {
-            height: 10px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        .card-top, .card-bottom {
+            height: 4px;
+            background-color: #4a4a4a;
+            margin-bottom: 8px;
         }
-        .card-bottom-border { transform: rotate(180deg); }
+        .card-bottom { transform: rotate(180deg); }
 
         .card-content {
-            padding: 15px 5px;
-            position: relative;
-            z-index: 1;
+            padding: 8px 4px;
         }
-
-        .card-rarity-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.15;
-        }
-
-        .gacha-result-card.common .card-rarity-bg { background-color: var(--card-border-common); }
-        .gacha-result-card.uncommon .card-rarity-bg { background-color: var(--card-border-uncommon); }
-        .gacha-result-card.bronze .card-rarity-bg { background-color: var(--card-border-bronze); }
-        .gacha-result-card.silver .card-rarity-bg { background-color: var(--card-border-silver); }
-        .gacha-result-card.gold .card-rarity-bg { background-color: var(--card-border-gold); }
-        .gacha-result-card.platinum .card-rarity-bg { background-color: var(--card-border-platinum); }
-        .gacha-result-card.rare .card-rarity-bg { background-color: var(--card-border-rare); }
-        .gacha-result-card.epic .card-rarity-bg { background-color: var(--card-border-epic); }
-        .gacha-result-card.legendary .card-rarity-bg { background-color: var(--card-border-legendary); }
-        .gacha-result-card.mythic .card-rarity-bg { background-color: var(--card-border-mythic); }
 
         .card-rarity-text {
-            font-size: 1.3rem;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 1px;
             font-weight: bold;
         }
         
         .card-tokenId {
-            font-size: 0.8rem;
-            margin-top: 5px;
+            font-size: 10px;
+            margin-top: 4px;
         }
 
-        .gacha-result-card.common { border-color: var(--card-border-common); color: var(--card-border-common); }
-        .gacha-result-card.uncommon { border-color: var(--card-border-uncommon); color: var(--card-border-uncommon); }
-        .gacha-result-card.bronze { border-color: var(--card-border-bronze); color: var(--card-border-bronze); }
-        .gacha-result-card.silver { border-color: var(--card-border-silver); color: var(--card-border-silver); }
-        .gacha-result-card.gold { border-color: var(--card-border-gold); color: var(--card-border-gold); }
-        .gacha-result-card.platinum { border-color: var(--card-border-platinum); color: var(--card-border-platinum); }
-        .gacha-result-card.rare { border-color: var(--card-border-rare); color: var(--card-border-rare); }
-        .gacha-result-card.epic { border-color: var(--card-border-epic); color: var(--card-border-epic); }
-        .gacha-result-card.legendary { border-color: var(--card-border-legendary); color: var(--card-border-legendary); }
-        .gacha-result-card.mythic { border-color: var(--card-border-mythic); color: var(--card-border-mythic); }
-        
+        .gacha-card.common { border-color: #6b6b6b; color: #6b6b6b; }
+        .gacha-card.uncommon { border-color: #58b68a; color: #58b68a; }
+        .gacha-card.bronze { border-color: #b86214; color: #b86214; }
+        .gacha-card.silver { border-color: #a0a0a0; color: #a0a0a0; }
+        .gacha-card.gold { border-color: #e5a42d; color: #e5a42d; }
+        .gacha-card.platinum { border-color: #c0c0c0; color: #c0c0c0; }
+        .gacha-card.rare { border-color: #4986b6; color: #4986b6; }
+        .gacha-card.epic { border-color: #7d49b6; color: #7d49b6; }
+        .gacha-card.legendary { border-color: #eb5454; color: #eb5454; }
+        .gacha-card.mythic { border-color: #ff00ff; color: #ff00ff; }
+
         .no-cards-prompt {
-            font-size: 1.2rem;
-            color: #aaa;
-            padding: 40px 20px;
+            font-size: 14px;
+            color: #888;
+            padding: 32px 16px;
         }
         
         /* Modal Overlay */
@@ -318,7 +286,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -326,103 +294,62 @@
         }
 
         .modal-content {
-            background-color: var(--gacha-bg);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            background-color: #c9c1c8;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.5);
             text-align: center;
-            max-width: 400px;
-            border: 3px solid var(--secondary-color);
-            position: relative;
+            max-width: 320px;
+            border: 4px solid var(--pixel-border-color);
         }
 
         .modal-title {
-            font-family: 'Bangers', cursive;
-            color: var(--secondary-color);
-            font-size: 2rem;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 0px var(--dark-text);
+            font-size: 18px;
+            margin-bottom: 16px;
+            text-shadow: 2px 2px var(--pixel-border-color);
         }
         
         .modal-text {
-            font-size: 1rem;
-            margin-bottom: 20px;
+            font-size: 12px;
+            margin-bottom: 16px;
             line-height: 1.5;
+            color: var(--pixel-border-color);
         }
         
         .modal-buttons {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 8px;
         }
         
         .confirm-button, .cancel-button {
-            font-family: 'Shrikhand', cursive;
-            padding: 12px 24px;
+            padding: 8px 16px;
             border: none;
-            border-radius: 20px;
+            border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 12px;
             text-transform: uppercase;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
-            transition: transform 0.2s ease;
+            box-shadow: 2px 2px 0 var(--pixel-border-color);
+            transition: transform 0.1s ease;
         }
 
         .confirm-button {
-            background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
-            color: var(--light-text);
+            background-color: var(--secondary-color);
+            color: #000;
         }
         
-        .confirm-button:hover { transform: translateY(-2px); }
-
         .cancel-button {
-            background: #555;
-            color: #ddd;
+            background-color: #a499a9;
+            color: #fff;
+        }
+
+        .confirm-button:hover, .cancel-button:hover {
+            transform: translate(-2px, -2px);
         }
         
-        .cancel-button:hover { transform: translateY(-2px); }
-
-        /* Responsive Design */
-        @media (max-width: 600px) {
-            .app-container {
-                width: 100%;
-                padding: 10px;
-            }
-            
-            .app-header {
-                flex-direction: column;
-                padding: 10px;
-            }
-            
-            .app-title {
-                font-size: 1.5rem;
-                margin-bottom: 5px;
-            }
-            
-            .wallet-section {
-                font-size: 0.8rem;
-            }
-            
-            .gacha-machine {
-                padding: 10px;
-            }
-            
-            .gacha-screen {
-                height: 150px;
-            }
-            
-            .gacha-pull-button {
-                font-size: 1.2rem;
-                padding: 10px 20px;
-            }
-            
-            .gacha-result-card {
-                padding: 8px;
-            }
-            
-            .card-rarity-text {
-                font-size: 1rem;
-            }
+        .confirm-button:active, .cancel-button:active {
+            transform: translate(0, 0);
+            box-shadow: none;
         }
     </style>
 </head>
