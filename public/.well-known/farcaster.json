@@ -1,23 +1,23 @@
 {
   "accountAssociation": {
-    "header": "",
-    "payload": "",
-    "signature": ""
+    "header": "eyJmaWQiOjE3OTE2LCJ0eXBlIjoiY3VzdG9keSIsImtleSI6IjB4MWYyNzJjM0FGRkU2RjQzRDUwMjc4MTZlOTBDRWRDYzhkNDNlRURGNiJ9",
+    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItZ2FjaGEtbWluaWFwcC52ZXJjZWwuYXBwIn0",
+    "signature": "MHhhZWI5NmE2MjAzZGQyMmVlNzlmZWE5MTJjODZlOGE2MWJmYmI0M2ExMjc5NThjOWQ2MWRmODQ5M2RkNGJlMzMxMjRmZGY3ZTBhZTVhOTEzYWFjOTQxNjc3ODFmNGVjNTE4NDAyZjI1ZTkxZDk2YjY0NTkyZGU3OTY0NDlkNmFiNjFi"
   },
   "frame": {
     "version": "1",
     "name": "Mystery Gacha NFT",
-    "iconUrl": "https://farcaster-gacha-miniapp.vercel.app/images/gacha-preview.png",
+    "iconUrl": "https://farcaster-gacha-miniapp.vercel.app/images/icon.png",
     "homeUrl": "https://farcaster-gacha-miniapp.vercel.app/",
     "imageUrl": "https://farcaster-gacha-miniapp.vercel.app/images/gacha-preview.png",
     "screenshotUrls": [],
     "tags": ["base", "farcaster", "miniapp", "game", "gacha", "nft"],
-    "primaryCategory": "game",
+    "primaryCategory": "games",
     "buttonTitle": "Play now!",
-    "splashImageUrl": "https://farcaster-gacha-miniapp.vercel.app/images/gacha-preview.png",
+    "splashImageUrl": "https://farcaster-gacha-miniapp.vercel.app/images/splash.png",
     "splashBackgroundColor": "#3f2f45",
     "subtitle": "Pull a free onchain NFT!",
-    "description": "The Mystery Gacha is a free-to-play NFT vending machine where you can pull unique trading cards on the Base Sepolia testnet.",
+    "description": "The Mystery Gacha is a free-to-play NFT vending machine where you can pull unique trading cards on Farcaster.",
     "webhookUrl": "https://farcaster-gacha-miniapp.vercel.app/api/webhook",
     "tagline": "A free NFT vending machine on Base."
   }
