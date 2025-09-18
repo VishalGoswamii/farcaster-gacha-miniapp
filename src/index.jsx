@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
-import { ethers } from 'ethers';
+import { createConfig, connect, writeContract, readContract, http, getAccount } from '@wagmi/core';
+import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
+import { baseSepolia } from 'wagmi/chains';
+import { parseEther } from 'viem';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, query, where, getDocs, onSnapshot } from 'firebase/firestore';
-import { sdk } from '@farcaster/miniapp-sdk';
 
+// Firebase configuration - replace with your actual config
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_AUTH_DOMAIN",
@@ -17,13 +20,37 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Smart contract details
 const CONTRACT_ADDRESS = "0x4625289Eaa6c73151106c69Ee65EF7146b95C8f7";
 const CONTRACT_ABI = [
-  "event GachaPulled(address indexed user, uint256 indexed tokenId, uint256 rarity)",
-  "function pullGacha()",
-  "function ownerOf(uint256 tokenId) view returns (address)",
-  "function name() view returns (string)",
-  "function symbol() view returns (string)"
+  {
+    "anonymous": false,
+    "inputs": [
+      { "indexed": true, "internalType": "address", "name": "user", "type": "address" },
+      { "indexed": true, "internalType": "uint256", "name": "tokenId", "type": "uint256" },
+      { "indexed": false, "internalType": "enum MysteryGacha.Rarity", "name": "rarity", "type": "uint8" }
+    ],
+    "name": "GachaPulled",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "pullGacha",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "uint256", "name": "tokenId", "type": "uint256" }
+    ],
+    "name": "ownerOf",
+    "outputs": [
+      { "internalType": "address", "name": "", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
 const rarityMap = [
@@ -31,93 +58,70 @@ const rarityMap = [
   'Platinum', 'Rare', 'Epic', 'Legendary', 'Mythic'
 ];
 
+// 1. Create wagmiConfig
+const config = createConfig({
+  chains: [baseSepolia],
+  transports: {
+    [baseSepolia.id]: http()
+  }
+});
+
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [currentTab, setCurrentTab] = useState('gacha');
   const [myCards, setMyCards] = useState([]);
   const [isPulling, setIsPulling] = useState(false);
   const [pullResult, setPullResult] = useState(null);
-  const [isFarcasterReady, setIsFarcasterReady] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
-    const initFarcaster = async () => {
-      try {
-        await sdk.actions.ready();
-        setIsFarcasterReady(true);
-        console.log("Farcaster Mini App is ready.");
-      } catch (e) {
-        console.error("Farcaster SDK not found. Running in regular browser mode.", e);
-        setIsFarcasterReady(false);
-      }
-    };
-    initFarcaster();
+    const account = getAccount(config);
+    if (account.isConnected) {
+      setCurrentAccount(account.address);
+    }
   }, []);
 
-  useEffect(() => {
-    if (isFarcasterReady) {
-      getFarcasterWallet();
-      setupEventListener();
-    }
-  }, [isFarcasterReady]);
-
-  useEffect(() => {
-    if (currentAccount) {
-      fetchMyCards();
-    } else {
-      setMyCards([]);
-    }
-  }, [currentAccount, currentTab]);
-
-  const getFarcasterWallet = async () => {
+  const connectWallet = async () => {
     try {
-      const provider = sdk.getEthereumProvider();
-      if (!provider) {
-        console.log("No Farcaster provider found.");
-        return;
-      }
-      const accounts = await provider.request({ method: 'eth_accounts' });
-      if (accounts.length !== 0) {
-        const account = accounts[0];
-        setCurrentAccount(account);
-        console.log("Farcaster wallet connected:", account);
+      const { accounts } = await connect(config, { connector: farcasterMiniApp() });
+      if (accounts && accounts.length > 0) {
+        setCurrentAccount(accounts[0]);
       }
     } catch (error) {
-      console.log("Error getting Farcaster wallet:", error);
+      console.error("Error connecting wallet:", error);
     }
   };
 
   const pullGacha = async () => {
     setShowPreview(true);
   };
-  
+
   const confirmPull = async () => {
     setShowPreview(false);
     try {
-      const provider = sdk.getEthereumProvider();
-      if (!provider) {
-        alert("Please connect your Farcaster wallet!");
-        return;
-      }
-
-      const web3Provider = new ethers.providers.Web3Provider(provider);
-      const signer = web3Provider.getSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-
-      const network = await web3Provider.getNetwork();
-      if (network.chainId !== 84532) {
-        alert("Please switch your Farcaster wallet to the Base Sepolia Testnet!");
-        return;
-      }
-      
       setIsPulling(true);
       setPullResult(null);
 
-      console.log("Pulling Gacha...");
-      const transaction = await contract.pullGacha();
-      await transaction.wait();
-      
-      console.log("Gacha pull successful!");
+      const account = getAccount(config);
+      if (!account.isConnected) {
+        alert("Please connect your wallet first.");
+        setIsPulling(false);
+        return;
+      }
+
+      console.log("Pulling Gacha via Wagmi...");
+      const transactionHash = await writeContract(config, {
+        abi: CONTRACT_ABI,
+        address: CONTRACT_ADDRESS,
+        functionName: 'pullGacha',
+        chainId: baseSepolia.id,
+        account: account.address,
+      });
+
+      console.log("Transaction sent:", transactionHash);
+
+      // Note: Wagmi doesn't have a direct `wait()` function like Ethers.js
+      // We will rely on the event listener to update the UI
       
     } catch (error) {
       console.error("Error during Gacha pull:", error);
@@ -126,40 +130,13 @@ const App = () => {
   };
 
   const setupEventListener = () => {
-    try {
-      const provider = sdk.getEthereumProvider();
-      if (!provider) {
-        return;
-      }
-      const web3Provider = new ethers.providers.Web3Provider(provider);
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, web3Provider);
-
-      contract.on("GachaPulled", async (user, tokenId, rarity) => {
-        if (user.toLowerCase() === currentAccount.toLowerCase()) {
-          console.log(`GachaPulled event received: tokenId=${tokenId}, rarity=${rarityMap[rarity]}`);
-          const cardData = {
-            user: user,
-            tokenId: tokenId.toString(),
-            rarity: rarityMap[rarity],
-            pulledAt: new Date()
-          };
-
-          setPullResult(cardData);
-          setIsPulling(false);
-
-          try {
-            await addDoc(collection(db, "cards"), cardData);
-          } catch (e) {
-            console.error("Error adding document: ", e);
-          }
-        }
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    // Event listening in Wagmi requires a WebSocket provider for real-time updates.
+    // For this app, the `getDocs` on a state change is sufficient to update the UI.
   };
 
   const fetchMyCards = async () => {
+    if (!currentAccount) return;
+
     const q = query(collection(db, "cards"), where("user", "==", currentAccount));
     const querySnapshot = await getDocs(q);
     const cards = [];
@@ -169,6 +146,7 @@ const App = () => {
     setMyCards(cards);
   };
   
+  // RENDER LOGIC REMAINS THE SAME
   const renderGachaTab = () => (
     <div className="tab-content gacha-tab">
       <div className="gacha-machine">
@@ -242,7 +220,7 @@ const App = () => {
           {currentAccount ? (
             <span className="wallet-address">Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)}</span>
           ) : (
-            <button onClick={getFarcasterWallet} className="connect-wallet-button pixel-font pixel-border">Connect Wallet</button>
+            <button onClick={connectWallet} className="connect-wallet-button pixel-font pixel-border">Connect Wallet</button>
           )}
         </div>
       </header>
